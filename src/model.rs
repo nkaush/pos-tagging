@@ -5,40 +5,15 @@ use std::fs::File;
 use std::io::{self, BufRead, BufReader};
 use std::path::PathBuf;
 
-type Counter = HashMap<String, usize>;
+// type Counter = HashMap<String, usize>;
 type Distribution = HashMap<String, f64>;
 
-const ARTIFICIAL_TAG_SUFFIXES: [(&str, &str); 11] = [
-    ("ed", "SUFF-ED"),
-    ("es", "SUFF-ES"),
-    ("er", "SUFF-ER"),
-    ("ly", "SUFF-LY"),
-    ("'s", "SUFF-AP-S"),
-    ("on", "SUFF-ON"),
-    ("le", "SUFF-LE"),
-    ("ing", "SUFF-ING"),
-    ("ion", "SUFF-ION"),
-    ("ess", "SUFF-ESS"),
-    ("ers", "SUFF-ERS"),
-];
-
-const ARTIFICIAL_TAG_PREFIXES: [(&str, &str); 9] = [
-    ("re", "PREF-RE"),
-    ("in", "PREF-IN"),
-    ("un", "PREF-UN"),
-    ("pro", "PREF-PRO"),
-    ("pre", "PREF-PRE"),
-    ("dis", "PREF-DIS"),
-    ("con", "PREF-CON"),
-    ("com", "PREF-COM"),
-    ("sta", "PREF-STA"),
-];
 
 const ALPHA: f64 = 1e-5;
 const DEFAULT_ALPHA_SCALAR: f64 = 1e-5;
 
 #[derive(Default)]
-pub struct PosHiddenMarkovModel {
+pub struct PosTaggerHiddenMarkovModel {
     starting_tag_counts: Counter,
     hapax_word_counts: Counter,
     hapax_artificial_tag_counts: HashMap<String, Counter>,
@@ -87,7 +62,7 @@ fn increment_counter(map: &mut Counter, key: &str) {
     map.entry(key.into()).and_modify(|e| *e += 1).or_insert(1);
 }
 
-impl PosHiddenMarkovModel {
+impl PosTaggerHiddenMarkovModel {
     pub fn new() -> Self {
         Default::default()
     }

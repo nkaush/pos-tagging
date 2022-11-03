@@ -1,12 +1,13 @@
-use super::{StringFrequencyDistribution, NestedWordCounter};
+use super::{StringFrequencyDistribution, NestedStringCounter};
 use std::collections::HashMap;
 
-pub struct ConditionalWordFrequencyDistribution {
+#[derive(Debug)]
+pub struct ConditionalStringFrequencyDistribution {
     distribution: HashMap<String, StringFrequencyDistribution>
 }
 
-impl ConditionalWordFrequencyDistribution {
-    pub fn with_default_smoothing(counter: NestedWordCounter) -> Self {
+impl ConditionalStringFrequencyDistribution {
+    pub fn with_default_smoothing(counter: NestedStringCounter) -> Self {
         let distribution = counter.into_iter()
             .map(|(tag, counter)| (tag, StringFrequencyDistribution::with_default_smoothing(counter)))
             .collect();
@@ -14,7 +15,7 @@ impl ConditionalWordFrequencyDistribution {
         Self { distribution }
     }
 
-    pub fn with_conditional_smoothing(counter: NestedWordCounter, smoothing: StringFrequencyDistribution) -> Self {
+    pub fn with_conditional_smoothing(counter: NestedStringCounter, smoothing: StringFrequencyDistribution) -> Self {
         let distribution = counter.into_iter()
             .map(|(tag, counter)| {
                 let alpha = smoothing.get_likelihood(&tag);

@@ -1,11 +1,11 @@
 use std::collections::HashMap;
 
 #[derive(Default, Debug)]
-pub struct WordCounter {
+pub struct StringCounter {
     counter: HashMap<String, usize>
 }
 
-impl WordCounter {
+impl StringCounter {
     pub fn new() -> Self {
         Self {
             counter: HashMap::new()
@@ -19,7 +19,7 @@ impl WordCounter {
             .or_insert(1);
     }
 
-    pub fn extend(&mut self, other: WordCounter) {
+    pub fn extend(&mut self, other: StringCounter) {
         self.counter.extend(other.into_iter())
     }
 

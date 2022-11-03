@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use super::WordCounter;
+use super::StringCounter;
 
 const ALPHA: f64 = 1e-5;
 
@@ -10,11 +10,11 @@ pub struct StringFrequencyDistribution {
 }
 
 impl StringFrequencyDistribution {
-    pub fn with_default_smoothing(counter: WordCounter) -> Self {
+    pub fn with_default_smoothing(counter: StringCounter) -> Self {
         Self::with_smoothing(counter, ALPHA)
     }
 
-    pub fn with_smoothing(counter: WordCounter, smoothing_scale: f64) -> Self {
+    pub fn with_smoothing(counter: StringCounter, smoothing_scale: f64) -> Self {
         let n: f64 = counter.values().sum::<usize>() as f64;
         let v: f64 = counter.len() as f64;
         let denominator = n + (smoothing_scale * (v + 1f64));
