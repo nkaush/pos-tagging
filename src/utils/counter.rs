@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, hash_map};
 
 #[derive(Default, Debug)]
 pub struct StringCounter {
@@ -27,12 +27,8 @@ impl StringCounter {
         self.counter.len()
     }
 
-    pub fn iter(&self) -> impl Iterator<Item=(&String, &usize)> {
-        self.counter.iter()
-    }
-
-    pub fn into_iter(self) -> impl Iterator<Item=(String, usize)> {
-        self.counter.into_iter()
+    pub fn iter(&self) -> StringCounterIter {
+        StringCounterIter { iter: self.counter.iter() }
     }
 
     pub fn keys(&self) -> impl Iterator<Item=&String> {
@@ -44,3 +40,23 @@ impl StringCounter {
     }
 }
 
+pub struct StringCounterIter<'a> {
+    iter: hash_map::Iter<'a, String, usize>
+}
+
+impl<'a> Iterator for StringCounterIter<'a> {
+    type Item = (&'a String, &'a usize);
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.iter.next()
+    }
+}
+
+impl IntoIterator for StringCounter {
+    type Item = (String, usize);
+    type IntoIter = hash_map::IntoIter<String, usize>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.counter.into_iter()
+    }
+}

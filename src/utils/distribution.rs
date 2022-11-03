@@ -1,7 +1,8 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, hash_map};
 use super::StringCounter;
 
-const ALPHA: f64 = 1e-5;
+pub(in crate::utils) const ALPHA: f64 = 1e-5;
+pub(in crate::utils) const LIKELIHOOD_LOG_BASE: f64 = std::f64::consts::E;
 
 #[derive(Debug)]
 pub struct StringFrequencyDistribution {
@@ -20,17 +21,55 @@ impl StringFrequencyDistribution {
         let denominator = n + (smoothing_scale * (v + 1f64));
 
         let entry_to_prob = 
-            |(key, count): (String, usize)| (key, ((count as f64 + smoothing_scale) / denominator).log10());
+            |(key, count): (String, usize)| (key, ((count as f64 + smoothing_scale) / denominator).ln());
 
+        let smoothed_default = (smoothing_scale / denominator).ln();
         Self {
             distribution: HashMap::from_iter(counter.into_iter().map(entry_to_prob)),
-            smoothed_default: (smoothing_scale / denominator).log10()
+            smoothed_default
         }
     }
 
-    pub fn get_likelihood(&self, key: &String) -> f64 {
+    pub fn get_likelihood(&self, key: &str) -> f64 {
         *self.distribution
             .get(key)
             .unwrap_or(&self.smoothed_default)
+    }
+
+    pub fn contains_key(&self, key: &str) -> bool {
+        self.distribution.contains_key(key)
+    }
+
+    pub fn iter(&self) -> StringFrequencyDistributionIter {
+        StringFrequencyDistributionIter { iter: self.distribution.iter() }
+    }
+
+    pub fn keys(&self) -> impl Iterator<Item=&String> {
+        self.distribution.keys()
+    }
+
+    pub fn values(&self) -> impl Iterator<Item=&f64> {
+        self.distribution.values()
+    }
+}
+
+pub struct StringFrequencyDistributionIter<'a> {
+    iter: hash_map::Iter<'a, String, f64>
+}
+
+impl<'a> Iterator for StringFrequencyDistributionIter<'a> {
+    type Item = (&'a String, &'a f64);
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.iter.next()
+    }
+}
+
+impl IntoIterator for StringFrequencyDistribution {
+    type Item = (String, f64);
+    type IntoIter = hash_map::IntoIter<String, f64>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.distribution.into_iter()
     }
 }

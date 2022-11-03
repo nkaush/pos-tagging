@@ -1,4 +1,5 @@
 use crate::hmm::hapax_patterns::get_matching_artificial_tag;
+use crate::nlp::extract_word_and_tag;
 use crate::POSTaggingHMM;
 use crate::utils::*;
 
@@ -34,15 +35,17 @@ impl POSTaggingHMMTrainer {
         for line in rdr.lines() {
             let sentence = line?;
             let tagged_line = extract_word_and_tag(&sentence);
-            let (w0, t0) = tagged_line[0];
 
-            self.initial_tag_counts.increment(t0);
-            self.tag_emission_counts.increment(t0, w0);
+            let mut iter = tagged_line.into_iter();
+            let (w0, t0) = iter.next().unwrap();
+            
+            self.initial_tag_counts.increment(&t0);
+            self.tag_emission_counts.increment(&t0, &w0);
 
             let mut previous_tag = t0;
-            for (word, tag) in tagged_line.into_iter().skip(1) {
-                self.tag_emission_counts.increment(tag, word);
-                self.tag_transition_counts.increment(previous_tag, tag);
+            for (word, tag) in iter {
+                self.tag_emission_counts.increment(&tag, &word);
+                self.tag_transition_counts.increment(&previous_tag, &tag);
                 
                 previous_tag = tag;
             }
@@ -61,7 +64,7 @@ impl POSTaggingHMMTrainer {
         
         for (tag, word_counts) in self.tag_emission_counts.iter() {
             for (word, count) in word_counts.iter() {
-                if count == &0 {
+                if count == &1 {
                     hapax_counts.increment(tag);
 
                     if let Some(aw) = get_matching_artificial_tag(word) {
@@ -75,6 +78,7 @@ impl POSTaggingHMMTrainer {
         let hapax_distribution = 
             StringFrequencyDistribution::with_default_smoothing(hapax_counts);
 
+        println!("{:?}", self.tag_emission_counts);
         let emission_distribution = 
             ConditionalStringFrequencyDistribution::with_conditional_smoothing(
                 self.tag_emission_counts, 

@@ -48,4 +48,3 @@ impl NestedStringCounter {
         self.counter.values()
     }
 }
-
