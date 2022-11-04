@@ -2,6 +2,12 @@ use crate::{StringFrequencyDistribution, ConditionalStringFrequencyDistribution}
 use crate::nlp::{get_matching_artificial_tag, TaggedWord};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use std::fs::{File, OpenOptions};
+use std::path::PathBuf;
+use std::error::Error;
+use std::io::{Write, Read};
+
+const MODEL_FILE_HEADER: [u8; 4] = *b"VHMM";
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct POSTaggingHMM {
@@ -36,30 +42,57 @@ impl POSTaggingHMM {
         }
     }
 
+    pub fn from_file(path: PathBuf) -> Result<Self, Box<dyn Error>> {
+        let mut file = File::open(path)?;
+        let mut header: [u8; 4] = [0; 4];
+        file.read_exact(&mut header)?;
+        if header != MODEL_FILE_HEADER {
+            Err("Unknown file structure")?
+        }
+
+        let mut model_bytes = Vec::new();
+        file.read_to_end(&mut model_bytes)?;
+
+        Ok(bincode::deserialize(&model_bytes)?)
+    }
+
+    pub fn save(&self, path: PathBuf) -> Result<(), Box<dyn Error>> {
+        let mut file = OpenOptions::new()
+            .write(true)
+            .create(true)
+            .open(path)?;
+        
+        file.write_all(b"VHMM")?;
+        file.write_all(bincode::serialize(&self)?.as_ref())?;
+
+        Ok(())
+    }
+
     pub fn predict(&self, sentence: Vec<String>) -> Vec<TaggedWord> {
-        // len(tagset) x len(sentence) arrays
-        let mut v = vec![vec![0.0; sentence.len()]; self.tag_set.len()];
         let mut b = vec![vec![""; sentence.len()]; self.tag_set.len()];
 
-        for (i, tag) in self.tag_set.iter().enumerate() {
-            v[i][0] = self.initial_tag_distribution.get_likelihood(tag);
-            v[i][0] += self.emission_distribution.get_likelihood(tag, &sentence[0]).unwrap();
-        }
+        let mut cv = vec![0.0; self.tag_set.len()];
+        let mut pv: Vec<f64> = self.tag_set
+            .iter()
+            .map(|tag| {
+                self.initial_tag_distribution.get_likelihood(tag) 
+                    + self.emission_distribution.get_likelihood(tag, &sentence[0]).unwrap()
+            })
+            .collect();
 
         for (time, word) in sentence.iter().enumerate().skip(1) {
             let is_unseen = !self.emission_distribution.inner_key_exists(word);
             let artificial_tag = get_matching_artificial_tag(word);
+            let emission_word = if is_unseen && artificial_tag.is_some() {
+                artificial_tag.unwrap()
+            } else {
+                word
+            };
 
             for (cti, curr_tag) in self.tag_set.iter().enumerate() {
-                let emission = if is_unseen && artificial_tag.is_some() {
-                    self.emission_distribution
-                        .get_likelihood(curr_tag, artificial_tag.unwrap())
-                        .unwrap()
-                } else {
-                    self.emission_distribution
-                        .get_likelihood(curr_tag, word)
-                        .unwrap()
-                };
+                let emission = self.emission_distribution
+                    .get_likelihood(curr_tag, emission_word)
+                    .unwrap();
 
                 let (best_score, best_tag): (f64, &str) = self.tag_set
                     .iter()
@@ -69,27 +102,38 @@ impl POSTaggingHMM {
                             .get_likelihood(prev_tag, &curr_tag)
                             .unwrap();
     
-                        (v[pti][time - 1] + emission + transition, prev_tag.as_str())
+                        (pv[pti] + emission + transition, prev_tag.as_str())
                     })
                     .max_by(|(s1, _), (s2, _)| s1.total_cmp(s2))
                     .unwrap();
 
                 b[cti][time] = best_tag;
-                v[cti][time] = best_score;
+                cv[cti] = best_score;
             }
+
+            pv = cv;
+            cv = vec![0.0; self.tag_set.len()];
         }
 
-        let (_, best_tag): (f64, &str) = v.iter()
-            .zip(b.iter())
+        let predicted_tags = self.backtrack_trellis(
+            b, pv, sentence.len()
+        );
+
+        sentence.into_iter().zip(predicted_tags).collect()
+    }
+
+    fn backtrack_trellis(&self, potential_tags: Vec<Vec<&str>>, final_likelihoods: Vec<f64>, sentence_len: usize) -> Vec<String> {
+        let (_, best_tag): (f64, &str) = final_likelihoods.into_iter()
+            .zip(potential_tags.iter())
             .map(|(vi, bi)| {
-                (vi[sentence.len() - 1], bi[sentence.len() - 1])
+                (vi, bi[sentence_len - 1])
             })
             .max_by(|(s1, _), (s2, _)| s1.total_cmp(s2))
             .unwrap();
 
-        let mut predicted_tags = vec!["END".to_string(); sentence.len()];
         let mut previous_tag = best_tag;
         let mut prev_tag_idx = self.tag_indices.get(previous_tag);
+        let mut predicted_tags = vec!["END".to_string(); sentence_len];
         
         for (time, pred_tag) in predicted_tags.iter_mut().enumerate().rev().skip(1) {
             *pred_tag = previous_tag.to_string();
@@ -98,10 +142,10 @@ impl POSTaggingHMM {
                 break;
             }
 
-            previous_tag = b[*prev_tag_idx.unwrap()][time];
+            previous_tag = potential_tags[*prev_tag_idx.unwrap()][time];
             prev_tag_idx = self.tag_indices.get(previous_tag);
         }
 
-        sentence.into_iter().zip(predicted_tags).collect()
+        predicted_tags
     }
 }
