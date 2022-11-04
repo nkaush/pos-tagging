@@ -3,11 +3,11 @@ use std::collections::HashMap;
 use super::StringCounter;
 
 #[derive(Default, Debug, Serialize, Deserialize)]
-pub struct NestedStringCounter {
+pub struct ConditionalStringCounter {
     counter: HashMap<String, StringCounter>
 }
 
-impl NestedStringCounter {
+impl ConditionalStringCounter {
     pub fn new() -> Self {
         Self {
             counter: HashMap::new()
@@ -20,7 +20,7 @@ impl NestedStringCounter {
             .increment(inner_key);
     }
 
-    pub fn extend(&mut self, other: NestedStringCounter) {
+    pub fn extend(&mut self, other: ConditionalStringCounter) {
         for (tag, counter) in other.into_iter() {
             self.counter
                 .entry(tag)

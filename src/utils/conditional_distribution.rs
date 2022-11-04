@@ -1,4 +1,4 @@
-use super::{StringFrequencyDistribution, NestedStringCounter};
+use super::{StringFrequencyDistribution, ConditionalStringCounter};
 use super::{ALPHA, LIKELIHOOD_LOG_BASE};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -9,7 +9,7 @@ pub struct ConditionalStringFrequencyDistribution {
 }
 
 impl ConditionalStringFrequencyDistribution {
-    pub fn with_default_smoothing(counter: NestedStringCounter) -> Self {
+    pub fn with_default_smoothing(counter: ConditionalStringCounter) -> Self {
         let distribution = counter.into_iter()
             .map(|(tag, counter)| (tag, StringFrequencyDistribution::with_default_smoothing(counter)))
             .collect();
@@ -17,7 +17,7 @@ impl ConditionalStringFrequencyDistribution {
         Self { distribution }
     }
 
-    pub fn with_conditional_smoothing(counter: NestedStringCounter, smoothing: StringFrequencyDistribution) -> Self {
+    pub fn with_conditional_smoothing(counter: ConditionalStringCounter, smoothing: StringFrequencyDistribution) -> Self {
         let distribution = counter.into_iter()
             .map(|(tag, counter)| {
                 let alpha = LIKELIHOOD_LOG_BASE.powf(smoothing.get_likelihood(&tag)) * ALPHA;

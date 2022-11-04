@@ -62,7 +62,7 @@ impl POSTaggingHMM {
             .create(true)
             .open(path)?;
         
-        file.write_all(b"VHMM")?;
+        file.write_all(&MODEL_FILE_HEADER)?;
         file.write_all(bincode::serialize(&self)?.as_ref())?;
 
         Ok(())
@@ -82,12 +82,12 @@ impl POSTaggingHMM {
 
         for (time, word) in sentence.iter().enumerate().skip(1) {
             let is_unseen = !self.emission_distribution.inner_key_exists(word);
-            let artificial_tag = get_matching_artificial_tag(word);
-            let emission_word = if is_unseen && artificial_tag.is_some() {
-                artificial_tag.unwrap()
-            } else {
-                word
-            };
+            let mut emission_word = word.as_str();
+            if is_unseen {
+                if let Some(artificial_tag) = get_matching_artificial_tag(word) {
+                    emission_word = artificial_tag;
+                } 
+            }
 
             for (cti, curr_tag) in self.tag_set.iter().enumerate() {
                 let emission = self.emission_distribution

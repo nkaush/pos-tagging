@@ -41,8 +41,8 @@ impl StringFrequencyDistribution {
         self.distribution.contains_key(key)
     }
 
-    pub fn iter(&self) -> StringFrequencyDistributionIter {
-        StringFrequencyDistributionIter { iter: self.distribution.iter() }
+    pub fn iter(&self) -> impl Iterator<Item=(&String, &f64)> {
+        self.distribution.iter()
     }
 
     pub fn keys(&self) -> impl Iterator<Item=&String> {
@@ -51,18 +51,6 @@ impl StringFrequencyDistribution {
 
     pub fn values(&self) -> impl Iterator<Item=&f64> {
         self.distribution.values()
-    }
-}
-
-pub struct StringFrequencyDistributionIter<'a> {
-    iter: hash_map::Iter<'a, String, f64>
-}
-
-impl<'a> Iterator for StringFrequencyDistributionIter<'a> {
-    type Item = (&'a String, &'a f64);
-
-    fn next(&mut self) -> Option<Self::Item> {
-        self.iter.next()
     }
 }
 

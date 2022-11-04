@@ -28,8 +28,8 @@ impl StringCounter {
         self.counter.len()
     }
 
-    pub fn iter(&self) -> StringCounterIter {
-        StringCounterIter { iter: self.counter.iter() }
+    pub fn iter(&self) -> impl Iterator<Item=(&String, &usize)> {
+        self.counter.iter()
     }
 
     pub fn keys(&self) -> impl Iterator<Item=&String> {
@@ -38,18 +38,6 @@ impl StringCounter {
 
     pub fn values(&self) -> impl Iterator<Item=&usize> {
         self.counter.values()
-    }
-}
-
-pub struct StringCounterIter<'a> {
-    iter: hash_map::Iter<'a, String, usize>
-}
-
-impl<'a> Iterator for StringCounterIter<'a> {
-    type Item = (&'a String, &'a usize);
-
-    fn next(&mut self) -> Option<Self::Item> {
-        self.iter.next()
     }
 }
 

@@ -4,13 +4,12 @@ mod model;
 pub use trainer::*;
 pub use model::*;
 
-use crate::NestedStringCounter;
+use crate::ConditionalStringCounter;
 use crate::nlp::{extract_word_and_tag, TaggedSentence};
-use std::io::{BufReader, BufRead};
+use std::io::{self, BufReader, BufRead};
 use std::path::PathBuf;
 use std::time::Instant;
 use std::fs::File;
-use std::io;
 
 pub fn evaluate(model: &POSTaggingHMM, data_file: PathBuf) -> Result<(), io::Error> {
     let f = File::open(data_file)?;
@@ -37,8 +36,8 @@ pub fn evaluate(model: &POSTaggingHMM, data_file: PathBuf) -> Result<(), io::Err
 }
 
 fn evaluate_accuracies(predictions: Vec<TaggedSentence>, correct_tags: Vec<Vec<String>>) {
-    let mut correct_wordtagcounter = NestedStringCounter::new();
-    let mut wrong_wordtagcounter = NestedStringCounter::new();
+    let mut correct_wordtagcounter = ConditionalStringCounter::new();
+    let mut wrong_wordtagcounter = ConditionalStringCounter::new();
 
     let mut correct: usize = 0;
     let mut wrong: usize = 0;

@@ -12,8 +12,8 @@ use std::fs::File;
 pub struct POSTaggingHMMTrainer {
     was_trained: bool,
     initial_tag_counts: StringCounter,
-    tag_emission_counts: NestedStringCounter,
-    tag_transition_counts: NestedStringCounter
+    tag_emission_counts: ConditionalStringCounter,
+    tag_transition_counts: ConditionalStringCounter
 }
 
 impl POSTaggingHMMTrainer {
@@ -21,8 +21,8 @@ impl POSTaggingHMMTrainer {
         Self {
             was_trained: false,
             initial_tag_counts: StringCounter::new(),
-            tag_emission_counts: NestedStringCounter::new(),
-            tag_transition_counts: NestedStringCounter::new()
+            tag_emission_counts: ConditionalStringCounter::new(),
+            tag_transition_counts: ConditionalStringCounter::new()
         }
     }
 
@@ -60,7 +60,7 @@ impl POSTaggingHMMTrainer {
         }
 
         let mut hapax_counts = StringCounter::new();
-        let mut artificial_word_counts = NestedStringCounter::new();
+        let mut artificial_word_counts = ConditionalStringCounter::new();
         
         for (tag, word_counts) in self.tag_emission_counts.iter() {
             for (word, count) in word_counts.iter() {
