@@ -9,6 +9,7 @@ use crate::NestedStringCounter;
 use crate::nlp::{extract_word_and_tag, TaggedSentence};
 use std::io::{BufReader, BufRead};
 use std::path::PathBuf;
+use std::time::Instant;
 use std::fs::File;
 use std::io;
 
@@ -24,9 +25,12 @@ pub fn evaluate(model: &POSTaggingHMM, data_file: PathBuf) -> Result<(), io::Err
             .map(Iterator::unzip)
             .unzip();
 
+    let start = Instant::now();
     let predictions: Vec<TaggedSentence> = sentences.into_iter()
         .map(|s| model.predict(s))
         .collect();
+    let duration = Instant::now() - start;
+    println!("Model evaluation on {} samples took {:.3}s", correct_taggings.len(), duration.as_secs_f64());
 
     evaluate_accuracies(predictions, correct_taggings);
 
@@ -43,13 +47,6 @@ fn evaluate_accuracies(predictions: Vec<TaggedSentence>, correct_tags: Vec<Vec<S
     for (predicted, answer) in predictions.into_iter().zip(correct_tags.into_iter()) {
         assert_eq!(predicted.len(), answer.len());
 
-        let (_, pred): (Vec<_>, Vec<_>) = predicted.iter().cloned().unzip();
-        if pred != answer {
-            println!("{:?}", pred);
-            println!("{:?}", answer);
-            println!("------------");
-        }
-        
         for ((word, pred_tag), ans_tag) in predicted.into_iter().zip(answer.into_iter()) {
             if pred_tag == ans_tag {
                 correct_wordtagcounter.increment(&word, &ans_tag);

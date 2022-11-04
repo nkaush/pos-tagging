@@ -78,7 +78,6 @@ impl POSTaggingHMMTrainer {
         let hapax_distribution = 
             StringFrequencyDistribution::with_default_smoothing(hapax_counts);
 
-        println!("{:?}", self.tag_emission_counts);
         let emission_distribution = 
             ConditionalStringFrequencyDistribution::with_conditional_smoothing(
                 self.tag_emission_counts, 

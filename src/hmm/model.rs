@@ -48,7 +48,7 @@ impl POSTaggingHMM {
         }
 
         for (time, word) in sentence.iter().enumerate().skip(1) {
-            let is_unseen = self.emission_distribution.inner_key_exists(word);
+            let is_unseen = !self.emission_distribution.inner_key_exists(word);
             let artificial_tag = hapax_patterns::get_matching_artificial_tag(word);
 
             for (cti, curr_tag) in self.tag_set.iter().enumerate() {
