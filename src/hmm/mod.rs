@@ -1,4 +1,3 @@
-mod hapax_patterns;
 mod trainer;
 mod model;
  

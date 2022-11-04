@@ -1,6 +1,7 @@
 use std::collections::{HashMap, hash_map};
+use serde::{Deserialize, Serialize};
 
-#[derive(Default, Debug)]
+#[derive(Default, Debug, Serialize, Deserialize)]
 pub struct StringCounter {
     counter: HashMap<String, usize>
 }

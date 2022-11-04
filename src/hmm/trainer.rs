@@ -1,14 +1,14 @@
-use crate::hmm::hapax_patterns::get_matching_artificial_tag;
-use crate::nlp::extract_word_and_tag;
+use crate::nlp::{get_matching_artificial_tag, extract_word_and_tag};
 use crate::POSTaggingHMM;
 use crate::utils::*;
 
 use std::io::{self, BufReader, BufRead};
+use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 use std::error::Error;
 use std::fs::File;
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct POSTaggingHMMTrainer {
     was_trained: bool,
     initial_tag_counts: StringCounter,

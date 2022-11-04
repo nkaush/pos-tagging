@@ -1,8 +1,9 @@
 use super::{StringFrequencyDistribution, NestedStringCounter};
 use super::{ALPHA, LIKELIHOOD_LOG_BASE};
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct ConditionalStringFrequencyDistribution {
     distribution: HashMap<String, StringFrequencyDistribution>
 }
