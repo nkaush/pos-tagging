@@ -7,6 +7,7 @@ pub use model::*;
 use crate::ConditionalStringCounter;
 use crate::nlp::{extract_word_and_tag, TaggedSentence};
 use std::io::{self, BufReader, BufRead};
+use indicatif::ProgressIterator;
 use std::path::PathBuf;
 use std::time::Instant;
 use std::fs::File;
@@ -26,6 +27,7 @@ pub fn evaluate(model: &POSTaggingHMM, data_file: PathBuf) -> Result<(), io::Err
     let start = Instant::now();
     let predictions: Vec<TaggedSentence> = sentences.into_iter()
         .map(|s| model.predict(s))
+        .progress()
         .collect();
     let duration = Instant::now() - start;
     println!("Model evaluation on {} samples took {:.3}s", correct_taggings.len(), duration.as_secs_f64());

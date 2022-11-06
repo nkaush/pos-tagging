@@ -101,7 +101,6 @@ impl POSTaggingHMM {
                         let transition = self.transition_distribution
                             .get_likelihood(prev_tag, &curr_tag)
                             .unwrap();
-    
                         (pv[pti] + emission + transition, prev_tag.as_str())
                     })
                     .max_by(|(s1, _), (s2, _)| s1.total_cmp(s2))
