@@ -17,7 +17,6 @@ fn test_training_works() -> Result<(), Box<dyn Error>> {
         .train("tests/data/mttest-training.txt".into())?;
     
     println!("{:?}", trainer);
-    assert!(false);
-
+    
     Ok(())
 }
