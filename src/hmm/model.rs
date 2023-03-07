@@ -1,11 +1,10 @@
 use crate::{StringFrequencyDistribution, ConditionalStringFrequencyDistribution};
-use crate::nlp::{get_matching_artificial_tag, TaggedWord};
+use crate::nlp::{get_matching_artificial_tag, TaggedWord, END_TAG};
+use std::{
+    fs::{File, OpenOptions}, io::{Write, Read}, error::Error,
+    collections::HashMap, path::PathBuf
+};
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
-use std::fs::{File, OpenOptions};
-use std::path::PathBuf;
-use std::error::Error;
-use std::io::{Write, Read};
 
 const MODEL_FILE_HEADER: [u8; 4] = *b"VHMM";
 
@@ -68,10 +67,16 @@ impl POSTaggingHMM {
         Ok(())
     }
 
-    pub fn predict(&self, sentence: Vec<String>) -> Vec<TaggedWord> {
+    pub fn predict(&self, mut sentence: Vec<String>) -> Vec<TaggedWord> {
+        sentence = sentence
+            .iter()
+            .map(|s| s.to_ascii_lowercase())
+            .collect();
+        sentence.push(END_TAG.into());
+
         let mut b = vec![vec![""; sentence.len()]; self.tag_set.len()];
 
-        let mut cv = vec![0.0; self.tag_set.len()];
+        let mut cv: Vec<f64> = vec![0.0; self.tag_set.len()];
         let mut pv: Vec<f64> = self.tag_set
             .iter()
             .map(|tag| {
@@ -114,9 +119,7 @@ impl POSTaggingHMM {
             cv = vec![0.0; self.tag_set.len()];
         }
 
-        let predicted_tags = self.backtrack_trellis(
-            b, pv, sentence.len()
-        );
+        let predicted_tags = self.backtrack_trellis(b, pv, sentence.len());
 
         sentence.into_iter().zip(predicted_tags).collect()
     }
@@ -132,9 +135,9 @@ impl POSTaggingHMM {
 
         let mut previous_tag = best_tag;
         let mut prev_tag_idx = self.tag_indices.get(previous_tag);
-        let mut predicted_tags = vec!["END".to_string(); sentence_len];
+        let mut predicted_tags = vec![END_TAG.to_string(); sentence_len - 1];
         
-        for (time, pred_tag) in predicted_tags.iter_mut().enumerate().rev().skip(1) {
+        for (time, pred_tag) in predicted_tags.iter_mut().enumerate().rev() {
             *pred_tag = previous_tag.to_string();
 
             if prev_tag_idx.is_none() {

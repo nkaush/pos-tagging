@@ -1,4 +1,4 @@
-use pos_tagging::hmm::*;
+use pos_tagger::hmm::*;
 use std::error::Error;
 
 #[test]

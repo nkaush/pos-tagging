@@ -1,4 +1,4 @@
-const END_TAG: &str = "END";
+pub const END_TAG: &str = "END";
 const TAG_DELIMITER: char = '=';
 const SENTENCE_DELIMITER: char = ' ';
 const DELIMITER_REPLACEMENT: &str = "/";
@@ -32,7 +32,7 @@ pub type TaggedWord = (String, String);
 pub type TaggedSentence = Vec<TaggedWord>;
 
 pub fn extract_word_and_tag(sentence: &str) -> Vec<(String, String)> {
-    let mut out: Vec<_> = sentence
+    sentence
         .split(SENTENCE_DELIMITER)
         .into_iter()
         .map(|w| (w, w.matches(TAG_DELIMITER).count()))
@@ -40,10 +40,7 @@ pub fn extract_word_and_tag(sentence: &str) -> Vec<(String, String)> {
             let c: Vec<&str> = w.split(TAG_DELIMITER).collect();
             (c[..c.len() - 1].join(DELIMITER_REPLACEMENT).to_ascii_lowercase(), c[c.len() - 1].to_string())
         })
-        .collect();
-
-    out.push((END_TAG.to_string(), END_TAG.to_string()));
-    out
+        .collect()
 }
 
 pub fn get_matching_artificial_tag(word: &str) -> Option<&'static str> {
