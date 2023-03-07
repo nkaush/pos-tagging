@@ -6,7 +6,7 @@ A Rust implementation of the the Viterbi algorithm for part-of-speech tagging.
 The executable this project produces has the capability to...
 * [`train`](#Train) a model, saves it to a file for future use, and optionally evaluates the model on some data
 * [`evaluate`](#Evaluate) a pre-trained model on some data
-* [`predict`](#Predict) the POS tagging of some sentnces using a pre-trained model either from standard input or from a file
+* [`predict`](#Predict) the POS tagging of some sentnces using a pre-trained model either from standard input or a file
 
 These functionalities correspond to the [`train`](#Train), [`evaluate`](#Evaluate), and [`predict`](#Predict) subcommands, respectively. The following blocks indicate how to use each subcommand.
 
