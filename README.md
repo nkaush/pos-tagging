@@ -26,7 +26,7 @@ Options:
   -V, --version  Print version
 ```
 
-# Train
+## Train
 ```
 Trains a model, saves it to a file for future use, and optionally evaluates the model on some data
 
@@ -38,7 +38,7 @@ Options:
   -e <EVAL_FILE>       The path to a data file to evaluate the model
 ```
 
-# Evaluate
+## Evaluate
 ```
 Evaluate a pre-trained model on some data
 
@@ -49,7 +49,7 @@ Options:
   -e <EVAL_FILE>       The path to a data file to evaluate the model
 ```
 
-# Predict
+## Predict
 ```
 Predict the POS tagging of some sentnces using a pre-trained model either from standard input or from a file
 

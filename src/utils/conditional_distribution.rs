@@ -1,7 +1,8 @@
-use super::{StringFrequencyDistribution, ConditionalStringCounter};
-use super::{ALPHA, LIKELIHOOD_LOG_BASE};
+use super::{StringFrequencyDistribution, ConditionalStringCounter, ALPHA};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+
+pub(in crate::utils) const LIKELIHOOD_LOG_BASE: f64 = std::f64::consts::E;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ConditionalStringFrequencyDistribution {
@@ -11,7 +12,7 @@ pub struct ConditionalStringFrequencyDistribution {
 impl ConditionalStringFrequencyDistribution {
     pub fn with_default_smoothing(counter: ConditionalStringCounter) -> Self {
         let distribution = counter.into_iter()
-            .map(|(tag, counter)| (tag, StringFrequencyDistribution::with_default_smoothing(counter)))
+            .map(|(tag, c)| (tag, StringFrequencyDistribution::with_default_smoothing(c)))
             .collect();
 
         Self { distribution }
@@ -35,9 +36,9 @@ impl ConditionalStringFrequencyDistribution {
     }
 
     pub fn inner_key_exists(&self, inner_key: &str) -> bool {
-        self.distribution.values()
-            .map(|d| d.contains_key(inner_key))
-            .any(|b| b)
+        self.distribution
+            .values()
+            .any(|d| d.contains_key(inner_key))
     } 
 
     pub fn iter(&self) -> impl Iterator<Item=(&String, &StringFrequencyDistribution)> {

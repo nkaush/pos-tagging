@@ -1,6 +1,5 @@
 use std::{path::PathBuf, time::Instant, error::Error, fs::File, io::{self, BufReader, Write}};
 use clap::{Args, Parser, Subcommand};
-use indicatif::ProgressIterator;
 use pos_tagger::hmm;
 
 #[derive(Parser)]
@@ -43,7 +42,10 @@ struct EvaluateArgs {
     model_file: PathBuf,
     /// The path to a data file to evaluate the model.
     #[arg(short, required=true)]
-    eval_file: PathBuf
+    eval_file: PathBuf,
+    /// Whether or not to multi-thread the evaluation.
+    #[arg(short, default_value="false")]
+    threaded: bool
 }
 
 #[derive(Args)]
@@ -101,10 +103,8 @@ fn main() -> Result<(), Box<dyn Error>> {
             let start = Instant::now();
             let train_result = train_args.data_files
                 .into_iter()
-                .progress()
                 .try_fold(hmm::POSTaggingHMMTrainer::new(), |t, f| t.train(f))
-                .map(hmm::POSTaggingHMMTrainer::finalize)
-                .map(Result::unwrap);
+                .and_then(hmm::POSTaggingHMMTrainer::finalize);
 
             if let Err(e) = train_result {
                 eprintln!("Failed to train model: {e:?}");
@@ -123,7 +123,11 @@ fn main() -> Result<(), Box<dyn Error>> {
         },
         Command::Evaluate(eval_args) => {
             let model = hmm::POSTaggingHMM::from_file(eval_args.model_file)?;
-            hmm::evaluate(&model, eval_args.eval_file)?;
+            if eval_args.threaded {
+                hmm::par_evaluate(&model, eval_args.eval_file)?;
+            } else {
+                hmm::evaluate(&model, eval_args.eval_file)?;
+            }
         },
         Command::Predict(predict_args) => {
             let model = hmm::POSTaggingHMM::from_file(predict_args.model_file)?;

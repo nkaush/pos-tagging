@@ -3,7 +3,6 @@ use serde::{Deserialize, Serialize};
 use super::StringCounter;
 
 pub(in crate::utils) const ALPHA: f64 = 1e-5;
-pub(in crate::utils) const LIKELIHOOD_LOG_BASE: f64 = std::f64::consts::E;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct StringFrequencyDistribution {

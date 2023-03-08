@@ -2,8 +2,8 @@ use crate::nlp::{get_matching_artificial_tag, extract_word_and_tag};
 use crate::POSTaggingHMM;
 use crate::utils::*;
 
-use std::io::{self, BufReader, BufRead};
 use serde::{Deserialize, Serialize};
+use std::io::{BufReader, BufRead};
 use std::path::PathBuf;
 use std::error::Error;
 use std::fs::File;
@@ -26,7 +26,7 @@ impl POSTaggingHMMTrainer {
         }
     }
 
-    pub fn train(mut self, data_file: PathBuf) -> Result<Self, io::Error> {
+    pub fn train(mut self, data_file: PathBuf) -> Result<Self, Box<dyn Error>> {
         let f = File::open(data_file)?;
         let rdr = BufReader::new(f);
 

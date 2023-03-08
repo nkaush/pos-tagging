@@ -25,8 +25,9 @@ if curr_sentence:
 train_lines = []
 dev_lines = []
 
+import random
 for i, line in enumerate(sentences):
-    if i % 5 == 0:
+    if random.random() < 0.2:
         dev_lines.append(line)
     else:
         train_lines.append(line)
