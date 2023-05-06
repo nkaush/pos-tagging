@@ -127,9 +127,7 @@ impl POSTaggingHMM {
     fn backtrack_trellis(&self, potential_tags: Vec<Vec<&str>>, final_likelihoods: Vec<f64>, sentence_len: usize) -> Vec<String> {
         let (_, best_tag): (f64, &str) = final_likelihoods.into_iter()
             .zip(potential_tags.iter())
-            .map(|(vi, bi)| {
-                (vi, bi[sentence_len - 1])
-            })
+            .map(|(vi, bi)| (vi, bi[sentence_len - 1]))
             .max_by(|(s1, _), (s2, _)| s1.total_cmp(s2))
             .unwrap();
 

@@ -52,6 +52,8 @@ pub fn par_evaluate(model: &POSTaggingHMM, data_file: PathBuf) -> Result<(), io:
     let start = Instant::now();
 
     let num_threads = num_cpus::get() - 1;
+    let num_threads = num_threads.clamp(1, usize::MAX);
+
     let num_predictions = sentences.len();
     let expected_chunk_size = (num_predictions / num_threads) + 1;
     let mut chunks: Vec<Vec<(usize, Vec<String>)>> = vec![Vec::with_capacity(expected_chunk_size); num_threads];
@@ -88,7 +90,10 @@ pub fn par_evaluate(model: &POSTaggingHMM, data_file: PathBuf) -> Result<(), io:
     let duration = Instant::now() - start;
     println!("Model evaluation on {} samples took {:.3}s", correct_taggings.len(), duration.as_secs_f64());
 
-    let predictions = predictions.into_iter().map(|(_, s)| s).collect();
+    let predictions = predictions
+        .into_iter()
+        .map(|(_, s)| s)
+        .collect();
     evaluate_accuracies(predictions, correct_taggings);
 
     Ok(())

@@ -114,7 +114,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             let duration = Instant::now() - start;
             println!("Model training took {:.03}s", duration.as_secs_f64());
             
-            let model = train_result.unwrap();
+            let model = train_result?;
             model.save(train_args.out_file)?;
 
             if let Some(f) = train_args.eval_file {

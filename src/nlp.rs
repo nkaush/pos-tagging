@@ -56,7 +56,10 @@ pub fn get_matching_artificial_tag(word: &str) -> Option<&'static str> {
         }
     }
 
-    let num_digits = word.chars().filter(char::is_ascii_digit).count();
+    let num_digits = word
+        .chars()
+        .filter(char::is_ascii_digit)
+        .count();
 
     if num_digits > word.len() / 2 {
         return Some("IS-A-NUMBER");
